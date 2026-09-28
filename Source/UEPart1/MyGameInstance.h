@@ -28,4 +28,8 @@ private:
 	UPROPERTY()
 	FString SchoolName;
 
+	// 학사 정보 발행 객체
+	UPROPERTY() // 클래스 전방선언
+	TObjectPtr<class UCourseInfo> CourseInfo;
+
 };

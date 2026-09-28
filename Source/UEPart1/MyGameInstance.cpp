@@ -6,6 +6,8 @@
 #include "Teacher.h"
 #include "Staff.h"
 #include "Card.h"
+#include "CourseInfo.h"
+
 
 UMyGameInstance::UMyGameInstance()
 {
@@ -18,73 +20,39 @@ void UMyGameInstance::Init()
 {
 	Super::Init();  // super: UGameInstance
 
+	// 학사 정보 객체 생성
+	CourseInfo = NewObject<UCourseInfo>(this);
+
 	UE_LOG(LogTemp, Log, TEXT("===================="));
-	TArray<UPerson*> Persons =
-	{
-		NewObject<UStudent>(),
-		NewObject<UTeacher>(),
-		NewObject<UStaff>(),
-
-
-	};
-
-	// 범위 기반 루프 활용 이름 출력
-	for (const auto Person : Persons)
-	{
-		UE_LOG(
-			LogTemp,
-			Log,
-			TEXT("구성원 이름: %s"),
-			*Person->GetName()
-		)
-	}
-
-	// 인터페이스 구현 여부에 따른 수업 참여 구분
-	// 구현 여부 확인하는 방법 -> 해당 인터페이스로 형변환(다운캐스팅)
-	// 다운캐스팅->RTTI-> 메모리어케되냐 일케물어봄..
-	for (const auto Person : Persons)
-	{
-		// 형변환을 통한 인터페이스 구현 여부 확인
-		ILessonInterface* LessonInterface =
-			Cast<ILessonInterface>(Person); // 퍼슨을 레슨인터페이스로 다운캐스팅
-
-		// 형변환 성공-> 구현
-		if (LessonInterface)
-		{
-			UE_LOG(LogTemp, Log, TEXT("%s님은 수업에 참여할 수 있습니다. "), *Person->GetName());
-		}
-		// 형변환 실패 (null)-> 안구현
-		else
-		{
-			UE_LOG(LogTemp, Log, TEXT("%s님은 수업에 참여할 수 없습니다.. "), *Person->GetName());
-		}
-	}
 	
-	// 구성원의 카드 타입 출력
-	for (const auto Person : Persons)
-	{
-		const UCard* OwnCard = Person->GetCard();
-		ensure(OwnCard); // null체크. 출력로그에서 빨간경고띄움
+	// 3개의 학생 객체 생성
+	UStudent* Student1 = NewObject<UStudent>();
+	Student1->SetName(TEXT("학생1"));
 
-		//OwnCard->GetCardtype();
-		// 열거형의 메타정보를 출력해본다..
-		// Enum객체를 가져온다
-		const UEnum* CardEnumType = FindObject<UEnum>(nullptr, TEXT("/Script/UEPart1.ECardType"));
-		if (CardEnumType)
-		{
-			// GetDisplayNameTextByValue 함수: FText를 반환함. -> ToString으로 변환.
-			FString CardMetaData = CardEnumType->GetDisplayNameTextByValue(static_cast<int64>(OwnCard->GetCardtype())).ToString();
+	UStudent* Student2 = NewObject<UStudent>();
+	Student2->SetName(TEXT("학생2"));
 
-			UE_LOG(LogTemp, Log, TEXT("%s님이 소유한 카드 종류: %s"), *Person->GetName(), *CardMetaData);
+	UStudent* Student3 = NewObject<UStudent>();
+	Student3->SetName(TEXT("학생3"));
 
-		}
+	// 교직원 객체 생성
+	UStaff* Staff1 = NewObject<UStaff>();
 
+	// 학사 정보 객체와 학생 객체의 연결
+	// 발생 주체와 구독 주체의 연결(의존성을 피할 수 없는 부분)
+	// MyGameInstance는 일종의 관리자(매니저) 성격의 객체.
 
-	}
+	// 구독 처리. student1, 2, 3에게 함수포인터를 호출받게 한다.
+	CourseInfo->OnChanged.AddUObject(Student1, &UStudent::GetNotification);
+	CourseInfo->OnChanged.AddUObject(Student2, &UStudent::GetNotification);
+	CourseInfo->OnChanged.AddUObject(Student3, &UStudent::GetNotification);
+
+	CourseInfo->OnChanged.AddUObject(Staff1, &UStaff::GetNotification);
+
+	// 새로운 학사 정보 발행
+	CourseInfo->ChangeCourseInfo(SchoolName, TEXT("변경된 학사 정보"));
 
 	UE_LOG(LogTemp, Log, TEXT("===================="));
-
-
 }
 //void UMyGameInstance::Init()
 //{
