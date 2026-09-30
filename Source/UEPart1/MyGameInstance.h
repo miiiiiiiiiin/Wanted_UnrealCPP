@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include <Engine/StreamableManager.h>
 #include "MyGameInstance.generated.h"
 
 // 학생 데이터를 관리할 구조체 선언
@@ -73,8 +74,25 @@ private:
 	virtual void Init() override; 
 
 private:
+	// 패키지 저장/로드 함수
+	void SaveStudentPackge() const;
+	void LoadStudentPackge() const;
+	// 패키지 안부르고 오브젝트 안의 패키지 그대로 가져오기
+	void LoadStudentObject() const;
+
+private:
+	// 패키지 저장에 필요한 이름 값
+	inline static const FString PackageName = TEXT("/Game/Student");
+	inline static const FString AssetName = TEXT("TopStudent");
+
+	// 프로퍼티 지정하면 변수 가져감
 	UPROPERTY()
 	TObjectPtr<class UStudent> StudentSrc;
+	
+	// 비동기 에셋 로드에 사용할 매니저.
+	FStreamableManager StreamableManager;
 
+	// 애셋 로드에 사용할 핸들
+	TSharedPtr<FStreamableHandle> Handle;
 
 };
